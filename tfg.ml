@@ -126,7 +126,8 @@ let critical v =
 let generate_timingpoint (plist:(vertex_id*vertex) list) (elist:(vertex_id*vertex_id) list) (vid:vertex_id) (knd:kind_type) (st:block_construct) = 
   let rtable = [(3,1); (2,2); (5,5); (25,10); (25,20); (3,50); (20,100);(1,200); (4,250);(5,500);(3,750);(4,1000);] in 
   let tA = sample_distribution rtable in 
-  let tD = sample_distribution rtable in
+  let tD = tA in
+  (*let tD = sample_distribution rtable in*)
   let p = Timingpoint({kind = knd; relative_arrival= Some(tA); relative_deadline=Some(tD); release_jitter=None; trigger_precision=(trig_precision knd); tstm=st}) in  
   let _ = node_count := !node_count + 1  in
   let pid = !node_count in
@@ -145,7 +146,7 @@ let generate_fragment (flist:(vertex_id*vertex) list) (elist:(vertex_id*vertex_i
 
 
 let generate_vertex (plist:(vertex_id*vertex) list) (flist:(vertex_id*vertex) list) (elist:(vertex_id*vertex_id) list) (vid: vertex_id) (st:block_construct) =
-   let ctable =[(Stp, 25);(Ftp, 25);(Critical, 25);(Fragment, 25)] in
+   let ctable =[(Stp, 50);(Ftp, 0);(Critical, 0);(Fragment, 50)] in
    let prob = sample_distribution ctable in
    match prob with
    |Stp -> let (plist_new, elist_new) = generate_timingpoint plist elist vid Soft st in
@@ -164,19 +165,20 @@ let rec generate_subgraph plist flist elist vid iter =
    | _ -> generate_block plist flist elist vid iter 
 
 and generate_block plist flist elist vid iter = 
-   let ptable =[(Expression, 70) ;(Ifelse, 10);(Loop,20);(Infiniteloop, 0)] in
+   let ptable =[(Expression, 80) ;(Ifelse, 10);(Loop,10);(Infiniteloop, 0)] in
   (* let dtable = [(2, 10); (2, 5); (2, 85)] in *)
-   let dtable = [(1, 10); (2, 35); (3, 35);(4, 10); (5, 10)] in
+   let dtable = [(1, 35); (2, 35); (3, 20);(4, 10)] in
    let prob = sample_distribution ptable in 
    match prob with 
    |Expression -> (*print_string "expression";*)  let (plist, flist, elist, vid) = generate_vertex plist flist elist vid Exp in 
 				   (*print_int (!node_count); print_string "\n";*)generate_subgraph plist flist elist vid (iter-1)
-   |Ifelse -> (*print_string "if-else";*) let (flist, elist) = generate_fragment flist elist vid false If in
+   |Ifelse -> let (flist, elist) = generate_fragment flist elist vid false If in
    			  let v1 = !node_count in
 			  let num = sample_distribution dtable in 
  			  let  (plist, flist, elist, v2) = generate_subgraph plist flist elist v1 num in
 			  let num = sample_distribution dtable in 
-			  let (plist, flist, elist, v3) = generate_vertex plist flist elist v1 Else in
+			  let (flist, elist) = generate_fragment flist elist v1 false Else in
+              let v3 = !node_count in
  			  let  (plist, flist, elist, v4) = generate_subgraph plist flist elist v3 num in
 			  let (flist, elist) = generate_fragment flist elist v2 false End in
 			  let vid = !node_count in
@@ -205,7 +207,7 @@ and generate_block plist flist elist vid iter =
 let print_state t =
 	print_string "st = ["; print_state_st t.st; print_string "]"; print_string " idx ="; print_int t.idx; print_string "\n" *)
 let generate_tfg seed = 
-    let dtable = [(1, 25); (2, 25); (3, 25);(4, 25)] (* (5, 10); (6, 10);(7, 10); (8, 10); (9, 10);(10, 10)] *)in 
+    let dtable = [(1, 0); (2, 35); (3, 35);(4, 30)] (* (5, 10); (6, 10);(7, 10); (8, 10); (9, 10);(10, 10)] *)in 
     let _ = Random.init(seed) in
     let p = Timingpoint({kind = Soft; relative_arrival= Some(0); relative_deadline=Some(0); release_jitter=None; trigger_precision=Some(0); tstm=Exp}) in 
     let vid = 0 in 
