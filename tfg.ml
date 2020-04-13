@@ -188,8 +188,9 @@ and generate_block plist flist elist vid iter =
 			(*print_int (!node_count); print_string "\n";*)let v1 = !node_count in
 			let num = sample_distribution dtable in 
             let  (plist, flist, elist, v2) = generate_subgraph plist flist elist v1 num in
-			let (flist, elist) = generate_fragment flist elist v2 false End in
-			let elist = (!node_count, v1) :: elist in 
+			let (flist, elist) = generate_fragment flist elist v1 false End in
+			let elist = (v2, v1) :: elist in 
+            let v1 = !node_count in
             generate_subgraph plist flist elist v1 (iter-1)
    |Infiniteloop -> (*print_string "infiniteloop\n";*)  let (flist, elist) = generate_fragment flist elist vid false Infinite in
 			   let v1 = !node_count in

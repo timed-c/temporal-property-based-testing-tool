@@ -34,3 +34,9 @@ exe_log
 tfg_log
 test/*
 a.out
+*.dot 
+._bcdi/
+._d/
+generate-tfg
+platform.info
+

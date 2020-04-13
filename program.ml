@@ -281,78 +281,115 @@ let print_statement v oc tc abs_arrival =
 					|true -> fprintf tc "critical{\n" ; (print_log_program (fst v) f.cstm oc tc true); fprintf tc "}\n"
 					|false -> (print_log_program (fst v) f.cstm oc tc true));abs_arrival
 
+let rec generate_tab_string lfile tab =
+        if (tab > 0) then (fprintf lfile "\t"; (generate_tab_string lfile (tab - 1))) else ()
+         
 
-let generate_timingpoint_construct v lfile tcfile abs_arrival = 
+let generate_timingpoint_construct v lfile tcfile abs_arrival tab = 
 	let vrtx = snd v in
 	let vid = fst v in
 	let tp = get_timedc_construct vrtx in
 	let newline = "\\n" in
     let frmtr = "%ld" in
 	match tp with
-    |Stp -> fprintf lfile  "printf(\"STP#%d %s-inf %s-inf %s\", abs_arr, (abs_arr + %d));\n abs_arr = abs_arr + %d; \n" vid frmtr frmtr newline (tA vrtx) (tA vrtx);
-			fprintf tcfile "testing_et = testing_entry(&testing_tt);\n stp(%d, %d, %s);\n testing_exit(&testing_tt, testing_et, %d, %s);\n" (tA vrtx) (tD vrtx) resolution vid "\"STP\""
-	|Ftp -> let entry_time_min  = abs_arrival in
-			let entry_time_max  = abs_arrival + (tD vrtx) in
-			let exit_time_min = abs_arrival + (tA vrtx) in 
-			let exit_time_max = abs_arrival + (tA vrtx) + (tD vrtx) in
-			fprintf lfile "printf(\"FTP#%d %d-%d %d-%d %s\");\n" vid entry_time_min entry_time_max exit_time_min exit_time_max newline;
-			fprintf tcfile "testing_et = testing_entry(&testing_tt);\n ftp(%d, %d, %s);\n testing_exit(&testing_tt, testing_et, %d, %s);\n" (tA vrtx) (tD vrtx) resolution vid "\"FTP\""
+    |Stp ->  (generate_tab_string lfile tab); fprintf lfile  "printf(\"STP#%d %s-inf %s-inf %s\",abs_arr,(abs_arr + %d));\n" vid frmtr frmtr newline (tA vrtx);
+             (generate_tab_string lfile tab); fprintf lfile "abs_arr = abs_arr + %d; \n"  (tA vrtx);
+             (generate_tab_string tcfile tab); fprintf tcfile "testing_et = testing_entry(&testing_tt);\n";
+             (generate_tab_string tcfile tab); fprintf tcfile "stp(%d, %d, %s);\n" (tA vrtx) (tD vrtx) resolution;
+             (generate_tab_string tcfile tab); fprintf tcfile "testing_exit(&testing_tt, testing_et, %d, %s);\n" vid "\"STP\"";
+             (tab)
+	|Ftp ->  (generate_tab_string lfile tab); fprintf lfile "printf(\"FTP#%d %s-%s %s-critical %s\",abs_arr,(abs_arr + %d),(abs_arr+%d));\n" vid frmtr frmtr frmtr newline (tD vrtx) (tD vrtx);
+            (generate_tab_string tcfile tab); fprintf tcfile "testing_et = testing_entry(&testing_tt);\n";
+            (generate_tab_string tcfile tab); fprintf tcfile "ftp(%d, %d, %s);\n" (tA vrtx) (tD vrtx) resolution;
+            (generate_tab_string tcfile tab); fprintf tcfile "testing_exit(&testing_tt, testing_et, %d, %s);\n"  vid "\"FTP\"0";
+            tab
 	| _ ->  raise (Match_failure_log("generate_timingpoint_construct not a tp"))  
 
 
 
-let generate_c_construct vid s lfile tcfile =
+let generate_c_construct vid s lfile tcfile tab =
 	let newline = "\\n" in
 	match s with
-    |Exp ->  (fragment_count := !fragment_count + 1); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline;
-            fprintf tcfile "printf(\"Frag#%d %s\"); \n code_fragment%d(); \n" vid newline (!fragment_count) 
+    |Exp ->  (fragment_count := !fragment_count + 1);   
+             (generate_tab_string lfile tab); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline;
+             (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline; 
+             (generate_tab_string tcfile tab); fprintf tcfile "code_fragment%d();\n" (!fragment_count);
+             tab
 	|If ->   let _ = count := !count + 1  in
              let _ = (fragment_count := !fragment_count + 1) in
-             fprintf lfile "int var%d = rand()%%2;\n printf(\"Frag#%d %s\"); \n if(var%d){\n" !count vid newline !count;
-		     fprintf tcfile "int var%d = rand()%%2;\n printf(\"Frag#%d %s\");\n if(var%d){\n" !count vid newline !count
-	|Else ->  fprintf lfile "}\n else {\n printf(\"Frag%d %s\");" vid newline;
-			 fprintf tcfile "}\n else{\n printf(\"Frag%d %s\"); \n code_fragment%d();" vid newline (!fragment_count) 
-	|End ->  (fragment_count := !fragment_count + 1); fprintf lfile "}\n printf(\"Frag#%d %s\");\n" vid newline;
-			 fprintf tcfile "}\n printf(\"Frag#%d %s\");\n code_fragment%d();\n" vid newline !fragment_count 
+             (generate_tab_string lfile tab); fprintf lfile "int var%d = rand()%%2;\n" !count; 
+             (generate_tab_string lfile tab); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline; 
+             (generate_tab_string lfile tab); fprintf lfile "if(var%d){\n" !count;
+             (generate_tab_string tcfile tab);fprintf tcfile "int var%d = rand()%%2;\n" !count;
+             (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline; 
+             (generate_tab_string tcfile tab); fprintf tcfile "if(var%d){\n" !count;
+             (tab+1)
+    |Else -> (generate_tab_string lfile (tab-1));fprintf lfile "}\n"; 
+             (generate_tab_string lfile (tab-1)); fprintf lfile "else{\n";
+             (generate_tab_string lfile tab); fprintf lfile "printf(\"Frag%d %s\");\n" vid newline;
+             (generate_tab_string tcfile (tab-1)); fprintf tcfile "}\n";
+             (generate_tab_string tcfile (tab-1)); fprintf tcfile "else{\n";
+             (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag%d %s\");\n" vid newline;
+             (generate_tab_string tcfile tab); fprintf tcfile "code_fragment%d();\n" (!fragment_count);
+             (tab)
+    |End ->  (fragment_count := !fragment_count + 1); 
+             (generate_tab_string lfile (tab-1)); fprintf lfile "}\n"; 
+             (generate_tab_string lfile (tab-1)); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline;
+             (generate_tab_string tcfile (tab-1)); fprintf tcfile "}\n"; 
+             (generate_tab_string tcfile (tab-1)); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline;
+             (generate_tab_string tcfile (tab-1)); fprintf tcfile "code_fragment%d();\n" !fragment_count;
+             (tab-1)
 	|While-> let _ = count := !count + 1  in
 			 let wvar = "var"^(string_of_int !count) in 
 			 let limit = (Random.int 10) + 1 in
 			 let _ = count := !count + 1  in
 			 let svar = "var"^(string_of_int !count) in 
-		   	 fprintf lfile "int %s = rand() %% %d;\n" wvar limit; 
-			 fprintf lfile "int %s = 0; \n printf(\"Frag#%d %s\");\n while(%s < %s){ %s++; \n " svar vid newline svar wvar svar;
-			 fprintf tcfile "int %s = rand() %% %d;\n" wvar limit; 
-			 fprintf tcfile "int %s = 0; \n printf(\"Frag#%d %s\");\n while(%s < %s){ %s++; \n" svar vid newline svar wvar svar
-	|Infinite -> fprintf lfile "printf(\"Frag#%d %s\");\n while(1){\n " vid newline; 
-				 fprintf tcfile "printf(\"Frag#%d %s\");\n while(1){\n" vid newline
-
-let generate_fragment v cs lfile tcfile =
+             (generate_tab_string lfile tab); fprintf lfile "int %s = rand() %% %d;\n" wvar limit; 
+             (generate_tab_string lfile tab); fprintf lfile "int %s = 0;\n" svar;
+             (generate_tab_string lfile tab); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline; 
+             (generate_tab_string lfile tab); fprintf lfile "while(%s < %s){\n" svar wvar; 
+             (generate_tab_string lfile (tab+1)); fprintf lfile "%s++;\n"  svar;
+             (generate_tab_string tcfile tab); fprintf tcfile "int %s = rand() %% %d;\n" wvar limit; 
+             (generate_tab_string tcfile tab); fprintf tcfile "int %s = 0;" svar;
+             (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline;
+             (generate_tab_string tcfile tab); fprintf tcfile "while(%s < %s){\n" svar wvar; 
+             (generate_tab_string tcfile (tab+1)); fprintf tcfile "%s++;" svar;
+             (tab+1)
+    |Infinite -> (generate_tab_string lfile tab); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline; 
+                 (generate_tab_string lfile tab);fprintf lfile "while(1){\n";
+                 (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline;
+                 (generate_tab_string tcfile tab);fprintf tcfile "while(1){\n";
+                 (tab+1)
+let generate_fragment v cs lfile tcfile tab =
 	let vid = fst v in
 	let cf = get_timedc_construct (snd v) in
 	let newline = "\\n" in
 	match cf with
-	|Critical -> (fragment_count := !fragment_count + 1); fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline;
-				 fprintf tcfile "critical{\n printf(\"Frag#%d %s\"); \n code_fragment%d(); \n }\n" vid  newline !fragment_count
-	|Fragment -> generate_c_construct vid cs lfile tcfile 
+    |Critical -> (fragment_count := !fragment_count + 1); (generate_tab_string lfile tab) ;fprintf lfile "printf(\"Frag#%d %s\");\n" vid newline;
+                 (generate_tab_string tcfile tab); fprintf tcfile "critical{\n\tprintf(\"Frag#%d %s\");\n\tcode_fragment%d();\n}\n" vid  newline !fragment_count; tab
+	|Fragment -> let tab = generate_c_construct vid cs lfile tcfile tab in tab 
 	| _ ->  raise (Match_failure_log("generate_fragment not a fragment"))   
  
-let generate_log_execution_program v lfile tcfile abs_arrival =
+let generate_log_execution_program v lfile tcfile abs_arrival tab =
 	let vrtx = snd v in
 	match vrtx with
-	|Timingpoint(p) -> let upd_arr = abs_arrival + (tA vrtx) in (generate_timingpoint_construct v lfile tcfile abs_arrival); upd_arr
-	|Fragment(f) ->	generate_fragment v f.cstm lfile tcfile; abs_arrival 
+	|Timingpoint(p) -> let upd_arr = abs_arrival + (tA vrtx) in 
+                       let tab = generate_timingpoint_construct v lfile tcfile abs_arrival tab in
+                       (upd_arr, tab)
+	|Fragment(f) ->	let tab = generate_fragment v f.cstm lfile tcfile tab in
+                    (abs_arrival, tab) 
 
 
 
 
-let rec tfg_log_generator vlist vend nde oc tc abs_arr =
+let rec tfg_log_generator vlist vend nde oc tc abs_arr tab =
 	match nde with 
     |num when num = vend -> print_int (!fragment_count) ; ()
 	| _ -> let v = List.find (fun (a,b) -> if (a=nde) then true else false) vlist in
 		   (*print_statement_stdio v; 
 		   let abs_arr = print_statement v oc tc abs_arr in *)
-			let abs_arr =  generate_log_execution_program v oc tc abs_arr in
-            tfg_log_generator vlist vend (nde+1) oc tc abs_arr
+			let (abs_arr, tab) =  generate_log_execution_program v oc tc abs_arr tab in
+            tfg_log_generator vlist vend (nde+1) oc tc abs_arr tab  
 
 
 
