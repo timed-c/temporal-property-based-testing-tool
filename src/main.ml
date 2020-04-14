@@ -48,25 +48,12 @@ let print_tfg_file t seed =
 let main =
 	let _ = Random.self_init () in
 	let seed = Random.int(1000000) in
-    let seed = 204540 in
 	let t = generate_tfg seed in
     let _ = print_int seed; print_string ":" in
 	(*let _ = print_tfg t seed in 
 	let _ = print_string "seed :"; print_int seed; print_string "\n" in*)
 	let _ = print_tfg_file t seed in
-	let filename_gen = "test/gen_"^(string_of_int seed)^".c" in
-	let filename_timedc= "test/time_"^(string_of_int seed)^".c" in
-	let oc = open_out filename_gen in
-    let tc = open_out filename_timedc in
-    let _ = fprintf oc "#include<stdio.h>\n#include<stdlib.h> \n \nint main(){\n\tsrand(%d);\n\tlong abs_arr = 0;\n" seed in
-    let _ = fprintf tc "#include<stdio.h>\n#include<cilktc.h>\n#include\"pbt.h\"\ntask fun(){\n\tstruct timespec testing_tt;\n\tlong testing_et;\n\ttesting_init_time(&testing_tt);\n " in
-	let frmtr = "%d\\n\"" in 
-    let _ = fprintf oc "\t"; fprintf oc "printf(\"Frag#0 \\n\");\n" in 
-	let _ = tfg_log_generator (t.nodes) ((List.length (t.nodes))) 1 oc tc 0  1 in
-	let _ = fprintf oc "}" in
-    let _ = fprintf tc "}\nint main(){\n\tsrand(%d);\n\tfun();\n}" seed in
-	let _ = close_out oc in 
-	let _ = close_out tc in 
-    () 
+    generate_program_files seed t 
+
 	(*let _ = read_tfg_logs "test/tfg_log" in *)  
 (*	let wt = init_tfg_weighted (t.nodes) (t.edges) t in ()*)

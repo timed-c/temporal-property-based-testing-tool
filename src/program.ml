@@ -350,7 +350,7 @@ let generate_c_construct vid s lfile tcfile tab =
              (generate_tab_string lfile tab); fprintf lfile "while(%s < %s){\n" svar wvar; 
              (generate_tab_string lfile (tab+1)); fprintf lfile "%s++;\n"  svar;
              (generate_tab_string tcfile tab); fprintf tcfile "int %s = rand() %% %d;\n" wvar limit; 
-             (generate_tab_string tcfile tab); fprintf tcfile "int %s = 0;" svar;
+             (generate_tab_string tcfile tab); fprintf tcfile "int %s = 0;\n" svar;
              (generate_tab_string tcfile tab); fprintf tcfile "printf(\"Frag#%d %s\");\n" vid newline;
              (generate_tab_string tcfile tab); fprintf tcfile "while(%s < %s){\n" svar wvar; 
              (generate_tab_string tcfile (tab+1)); fprintf tcfile "%s++;" svar;
@@ -393,4 +393,18 @@ let rec tfg_log_generator vlist vend nde oc tc abs_arr tab =
 
 
 
-
+let generate_program_files seed t =
+	let filename_gen = "test/gen_"^(string_of_int seed)^".c" in
+	let filename_timedc= "test/time_"^(string_of_int seed)^".c" in
+	let oc = open_out filename_gen in
+    let tc = open_out filename_timedc in
+    let _ = fprintf oc "#include<stdio.h>\n#include<stdlib.h> \n \nint main(){\n\tsrand(%d);\n\tlong abs_arr = 0;\n" seed in
+    let _ = fprintf tc "#include<stdio.h>\n#include<cilktc.h>\n#include\"pbt.h\"\ntask fun(){\n\tstruct timespec testing_tt;\n\tlong testing_et;\n\ttesting_init_time(&testing_tt);\n " in
+	let frmtr = "%d\\n\"" in 
+    let _ = fprintf oc "\t"; fprintf oc "printf(\"Frag#0 \\n\");\n" in 
+	let _ = tfg_log_generator (t.nodes) ((List.length (t.nodes))) 1 oc tc 0  1 in
+	let _ = fprintf oc "}" in
+    let _ = fprintf tc "}\nint main(){\n\tsrand(%d);\n\tfun();\n}" seed in
+	let _ = close_out oc in 
+	let _ = close_out tc in 
+    () 

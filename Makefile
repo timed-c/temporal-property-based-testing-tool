@@ -1,7 +1,7 @@
 RESULT = generate-tfg
 SOURCES = \
-  tfg.mli tfg.ml \
-  program.mli program.ml \
-  main.ml
+  src/tfg.mli src/tfg.ml \
+  src/program.mli src/program.ml \
+  src/main.ml
 OCAMLMAKEFILE = OCamlMakefile
 include $(OCAMLMAKEFILE)
