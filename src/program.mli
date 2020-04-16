@@ -19,7 +19,7 @@ type tfg_weighted =
 	wedges : edge_weight list;
 }
 
-val tfg_log_generator  : (vertex_id*vertex) list -> int -> int -> out_channel -> out_channel -> int -> int ->  unit
+
 
 val generate_program_files : int -> tfg ->  unit
 

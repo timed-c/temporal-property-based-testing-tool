@@ -43,4 +43,8 @@ a.out
 generate-tfg
 pbt-test
 platform.info
+unit-test/test/*
+result/
+*.c
+tfg_csmith_rasp.sh
 

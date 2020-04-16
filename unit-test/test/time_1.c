@@ -8,7 +8,7 @@ task fun(){
  	printf("Frag#1 \n");
 	code_fragment1();
 	testing_et = testing_entry(&testing_tt);
-	stp(30, 20, ms);
+	stp(20, 20, ms);
 	testing_exit(&testing_tt, testing_et, 2, "STP");
 }
 int main(){

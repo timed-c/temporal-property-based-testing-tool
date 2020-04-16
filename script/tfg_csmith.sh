@@ -37,4 +37,5 @@ cp test/${SEED}/tfg_${SEED}_log tfg_log
 echo "GENERATING EXECUTION LOGS"
 test/${SEED}/time_${SEED} > test/${SEED}/exe_${SEED}_log
 cp test/${SEED}/exe_${SEED}_log exe_log
-checker/a.out
+RES="$(checker/a.out)"
+echo "${SEED} ${RES} 

@@ -27,7 +27,7 @@ type block_construct =
 	|Else
 	|While
 	|Infinite
-	|End
+	|End of c_construct
 
 type timingpoint_param =
 {
@@ -146,7 +146,7 @@ let generate_fragment (flist:(vertex_id*vertex) list) (elist:(vertex_id*vertex_i
 
 
 let generate_vertex (plist:(vertex_id*vertex) list) (flist:(vertex_id*vertex) list) (elist:(vertex_id*vertex_id) list) (vid: vertex_id) (st:block_construct) =
-   let ctable =[(Stp, 50);(Ftp, 0);(Critical, 0);(Fragment, 50)] in
+   let ctable =[(Stp, 25);(Ftp, 25);(Critical, 0);(Fragment, 50)] in
    let prob = sample_distribution ctable in
    match prob with
    |Stp -> let (plist_new, elist_new) = generate_timingpoint plist elist vid Soft st in
@@ -180,7 +180,7 @@ and generate_block plist flist elist vid iter =
 			  let (flist, elist) = generate_fragment flist elist v1 false Else in
               let v3 = !node_count in
  			  let  (plist, flist, elist, v4) = generate_subgraph plist flist elist v3 num in
-			  let (flist, elist) = generate_fragment flist elist v2 false End in
+			  let (flist, elist) = generate_fragment flist elist v2 false (End(Ifelse)) in
 			  let vid = !node_count in
               let elist = (v4, vid) :: elist in 
 				 generate_subgraph plist flist elist vid (iter-1)
@@ -188,7 +188,7 @@ and generate_block plist flist elist vid iter =
 			(*print_int (!node_count); print_string "\n";*)let v1 = !node_count in
 			let num = sample_distribution dtable in 
             let  (plist, flist, elist, v2) = generate_subgraph plist flist elist v1 num in
-			let (flist, elist) = generate_fragment flist elist v1 false End in
+			let (flist, elist) = generate_fragment flist elist v1 false (End(Loop)) in
 			let elist = (v2, v1) :: elist in 
             let v1 = !node_count in
             generate_subgraph plist flist elist v1 (iter-1)
@@ -196,7 +196,8 @@ and generate_block plist flist elist vid iter =
 			   let v1 = !node_count in
 			   let num = sample_distribution dtable in 
                let  (plist, flist, elist, v2) = generate_subgraph plist flist elist v1 num in
-			   let elist = (v2, v1) :: elist in 
+               let (flist, elist) = generate_fragment flist elist v2 false (End(Infiniteloop)) in
+			   let elist = (!node_count, v1) :: elist in 
                generate_subgraph plist flist elist vid 0
 
  

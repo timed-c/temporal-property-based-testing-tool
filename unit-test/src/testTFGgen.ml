@@ -9,7 +9,7 @@ let v0 = Timingpoint({kind = Soft; relative_arrival= Some(0); relative_deadline=
 
 let v1 = Fragment({bcet=None; wcet=None; critical=false; cstm=Exp})
 
-let v2 = Timingpoint({kind = Soft; relative_arrival= Some(30); relative_deadline=Some(20);release_jitter=None; trigger_precision=(Some(0)); tstm=Exp})
+let v2 = Timingpoint({kind = Soft; relative_arrival= Some(20); relative_deadline=Some(20);release_jitter=None; trigger_precision=(Some(0)); tstm=Exp})
 
 let vlist = [(0,v0);(1,v1);(2,v2)]
 

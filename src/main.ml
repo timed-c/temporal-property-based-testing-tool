@@ -46,14 +46,9 @@ let print_tfg_file t seed =
     fprintf gc "digraph G {\n label= \"seed =";  fprintf gc "%d" seed; fprintf gc "\";\nlabelloc=\"t\";\n"; print_vertex_list_file t.nodes gc; print_edge_list_file (List.rev t.edges) gc; fprintf gc "}"  
 
 let main =
-	let _ = Random.self_init () in
-	let seed = Random.int(1000000) in
+    let seed = if ((Array.length (Sys.argv)) < 2) then ((Random.self_init ()); Random.int(1000000)) else (int_of_string (Sys.argv.(1))) in
 	let t = generate_tfg seed in
     let _ = print_int seed; print_string ":" in
-	(*let _ = print_tfg t seed in 
-	let _ = print_string "seed :"; print_int seed; print_string "\n" in*)
 	let _ = print_tfg_file t seed in
     generate_program_files seed t 
 
-	(*let _ = read_tfg_logs "test/tfg_log" in *)  
-(*	let wt = init_tfg_weighted (t.nodes) (t.edges) t in ()*)

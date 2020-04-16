@@ -1,0 +1,19 @@
+#!/bin/bash
+ARG1=${1}
+ARG2=${2}
+rm -rf test-summary
+for ((j=0; j<${ARG1}; j=j+1))
+   do
+      if [[ "$ARG2" == '0' ]]; then
+			  script/tfg_csmith_rasp.sh "${ARG2}"
+      else
+			  script/tfg_csmith_rasp.sh "${ARG2}" 	
+      fi
+   done
+
+STR="$(date +%Y-%m-%d-%H-%M-%S)"
+cp test-summary result/$STR
+echo "*****************************"
+echo "          SUMMARY            "
+echo "*****************************"
+cat test-summary

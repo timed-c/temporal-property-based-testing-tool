@@ -1,4 +1,4 @@
-RESULT = pdt-test
+RESULT = pbt-test
 SOURCES = \
   ../src/tfg.mli ../src/tfg.ml \
   ../src/program.mli ../src/program.ml \

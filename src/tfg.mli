@@ -22,7 +22,7 @@ type block_construct =
 	|Else
 	|While
 	|Infinite
-	|End
+	|End of c_construct
 
 type timingpoint_param =
 {
