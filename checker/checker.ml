@@ -94,14 +94,49 @@ let get_int_val t =
     let l = if ((List.nth tlst 1) = "inf") then (max_int) else int_of_string (List.nth tlst 1) in
     (u,l)
 
+let check_entry_stp_and_ftp_without_dmiss tlst elst =
+   let (tlow1, tupp1) = get_int_val (List.nth tlst 1) in
+   let etme_a = int_of_string (List.nth elst 1) in
+   if ((tlow1 <= etme_a) && (etme_a <= tupp1)) then true else false 
+
+let check_entry_ftp_dmiss tlst elst =
+   let etme_critical = int_of_string (List.nth elst 4) in 
+   let etme_trigger_precision = int_of_string (List.nth elst 5) in 
+   let etme_overshot = int_of_string (List.nth elst 3) in 
+   if (etme_critical <> 0) then 
+            begin 
+              if (etme_trigger_precision = etme_overshot) then true else false 
+            end
+    else 
+            begin
+            if (etme_overshot = 0) then true else false 
+            end 
+
+let check_exit_stp_and_ftp_without_dmiss tlst elst = 
+   let (tlow2, tupp2) = get_int_val (List.nth tlst 2) in
+   let etme_d = int_of_string (List.nth elst 2) in
+   if ((tlow2 <= etme_d) && (etme_d <= tupp2)) then true else false
+
+let check_exit_ftp_dmiss tlst elst =
+    let (tlow2, tupp2) = get_int_val (List.nth tlst 2) in
+    let etme_critical = int_of_string (List.nth elst 4) in 
+    let etme_trigger_precision = int_of_string (List.nth elst 5) in 
+    let etme_d = int_of_string (List.nth elst 2) in
+    if (etme_critical <> 0) then 
+            begin 
+             if ((tlow2 <= etme_d) && (etme_d <= tupp2)) then true else false
+            end
+    else 
+            begin
+              if ((tlow2 <= etme_d) && (etme_d <= (tupp2 + etme_trigger_precision))) then true else false
+            end 
+
 let compare_tp tlst elst = 
-        let id = if ((List.nth tlst 0) = (List.nth elst 0)) then true else false in 
-        let (tlow1, tupp1) = get_int_val (List.nth tlst 1) in
-        let etme_a = int_of_string (List.nth elst 1) in 
-        let upper = if ((tlow1 <= etme_a) && (etme_a <= tupp1)) then true else false in
-        let (tlow2, tupp2) = get_int_val (List.nth tlst 2) in
-        let etme_d = int_of_string (List.nth elst 2) in 
-        let lower = if ((tlow2 <= etme_d) && (etme_d <= tupp2)) then true else false in 
+        let id = if ((List.nth tlst 0) = (List.nth elst 0)) then true else false in
+        let etme_a = int_of_string (List.nth elst 1) in
+        let stporftp = List.nth (Str.split (Str.regexp "#+") (List.nth elst 0)) 0 in
+        let upper = if ((etme_a <> 0) || (stporftp = "STP")) then check_entry_stp_and_ftp_without_dmiss tlst elst else check_entry_ftp_dmiss tlst elst in
+        let lower = if (etme_a <> 0 || (stporftp = "STP")) then check_exit_stp_and_ftp_without_dmiss tlst elst else check_exit_ftp_dmiss tlst elst in
         (id && upper && lower)
 
 

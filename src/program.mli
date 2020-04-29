@@ -23,5 +23,5 @@ type tfg_weighted =
 
 val generate_program_files : int -> tfg ->  unit
 
-val init_tfg_weighted : (vertex_id*vertex) list -> (vertex_id*vertex_id) list -> tfg -> tfg_weighted
+
 

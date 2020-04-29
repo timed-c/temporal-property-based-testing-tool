@@ -99,4 +99,4 @@ extern void code_fragment98();
 extern void code_fragment99();
 extern void code_fragment100();
 
-#define crctl testing_crctl;stp(0,0,ms)
+#define testing_init_time stp(0,0,ms);testing_init_time

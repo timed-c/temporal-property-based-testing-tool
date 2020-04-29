@@ -16,9 +16,10 @@ long testing_timspec_diff(struct timespec *start, struct timespec *stop, struct 
     return ((result->tv_sec * 1000) + (((float) result->tv_nsec / (float)1000000)));
 }
 
-void testing_init_time(struct timespec* tt){
+void testing_init_time(struct timespec* tt, struct timespec* ex){
      printf("Frag#0 \n");
      clock_gettime(CLOCK_REALTIME, tt);
+	 clock_gettime(CLOCK_REALTIME, ex);
      //printf("init : %lld.%.9ld\n", (long long)tt->tv_sec, tt->tv_nsec);
 }
 
@@ -31,14 +32,33 @@ long testing_entry(struct timespec* tt){
    return result;
 }
 
-long testing_exit(struct timespec* tt, long entry_time, int id, char* stporftp){
-   struct timespec ts, res;
+long testing_exit(struct timespec* tt, long* entry_time, int id, char* stporftp, int crtcl, long overshot, long* time_until_critical, struct timespec* ts){
+   struct timespec res;
    long exit_time;
-   clock_gettime(CLOCK_REALTIME, &ts);
-   exit_time = testing_timspec_diff(tt, &ts, &res);
+   char stpstring[] = "STP";
+   clock_gettime(CLOCK_REALTIME, ts);
+   exit_time = testing_timspec_diff(tt, ts, &res);
+ 
    //printf("exit : %lld.%.9ld\n", (long long)ts.tv_sec, ts.tv_nsec);
-   printf("%s#%d %ld %ld\n", stporftp, id, entry_time, exit_time);
+   if(strcmp(stporftp, stpstring) == 0){
+		printf("%s#%d %ld %ld\n", stporftp, id, *entry_time, exit_time);
+   }
+   else{
+		printf("%s#%d %ld %ld %ld %ld %ld\n", stporftp, id, *entry_time, exit_time, crtcl, overshot, *time_until_critical);
+
+   }
+   *time_until_critical = 0;
+   return; 
 }
+
+long testing_compute_time_until_critical(struct timespec* ts){
+   struct timespec now, res;
+   long time_until_critical;
+   clock_gettime(CLOCK_REALTIME, &now);
+   time_until_critical = testing_timspec_diff(ts, &now, &res);
+   return (time_until_critical); 
+}
+
 
 
 

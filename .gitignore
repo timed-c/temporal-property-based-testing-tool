@@ -47,4 +47,6 @@ unit-test/test/*
 result/
 *.c
 tfg_csmith_rasp.sh
-
+checker/a.out
+checker/*.cmi
+checker/*.cmo

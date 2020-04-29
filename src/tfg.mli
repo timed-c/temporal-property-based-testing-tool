@@ -54,6 +54,20 @@ type tfg =
 } 
 
 
+val is_timingpoint: vertex -> bool 
+
+val is_fragment: vertex -> bool 
+
+val is_stp: vertex -> bool 
+
+val is_ftp: vertex -> bool 
+
+val is_critical: vertex -> bool
+
+val is_while: vertex -> bool 
+
+val is_if: vertex -> bool
+
 val k: vertex -> kind_type
 
 val tA: vertex -> int 
